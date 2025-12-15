@@ -1,6 +1,3 @@
-// components/LayoutWrapper/LayoutWrapper.jsx
-// This component applies structural styles and includes the Footer.
-
 import Navbar from "@/components/Navbar/Navbar";
 import { SearchProvider } from "@/components/Context/SearchContext";
 

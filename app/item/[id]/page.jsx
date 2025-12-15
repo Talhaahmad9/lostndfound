@@ -9,9 +9,8 @@ import {
   CircleAlert,
   CheckCircle2,
 } from "lucide-react";
-import { notFound } from "next/navigation"; // For handling 404
+import { notFound } from "next/navigation";
 
-// Helper function to format the date
 const formatDate = (dateString) => {
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
@@ -20,10 +19,9 @@ const formatDate = (dateString) => {
   });
 };
 
-// --- Data Fetching Function ---
 async function getItemDetails(id) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/items/${id}`,
+    `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/items/${id}`,
     {
       cache: "no-store",
     }
@@ -39,7 +37,6 @@ async function getItemDetails(id) {
   return res.json();
 }
 
-// --- Dynamic Detail Page Component ---
 const ItemDetailPage = async ({ params }) => {
   const { id } = await params;
   const item = await getItemDetails(id);
@@ -59,7 +56,6 @@ const ItemDetailPage = async ({ params }) => {
       <div
         className={`bg-white rounded-xl shadow-2xl p-8 border-t-8 ${primaryColor}`}
       >
-        {/* Title and Status */}
         <div className="flex justify-between items-start mb-6 pb-4 border-b">
           <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900 break-words pr-4">
             {item.item_name}
@@ -71,10 +67,7 @@ const ItemDetailPage = async ({ params }) => {
             {item.status} Item
           </div>
         </div>
-
-        {/* Details Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8 text-gray-700 mb-8">
-          {/* Category */}
           <div className="flex items-center">
             <Tag className="w-5 h-5 mr-3 text-gray-500" />
             <div>
@@ -84,8 +77,6 @@ const ItemDetailPage = async ({ params }) => {
               <p className="text-lg">{item.category}</p>
             </div>
           </div>
-
-          {/* Location */}
           <div className="flex items-center">
             <MapPin className="w-5 h-5 mr-3 text-gray-500" />
             <div>
@@ -95,8 +86,6 @@ const ItemDetailPage = async ({ params }) => {
               <p className="text-lg">{item.last_seen_location}</p>
             </div>
           </div>
-
-          {/* Date Lost/Found */}
           <div className="flex items-center">
             <Calendar className="w-5 h-5 mr-3 text-gray-500" />
             <div>
@@ -108,8 +97,6 @@ const ItemDetailPage = async ({ params }) => {
               </p>
             </div>
           </div>
-
-          {/* Date Reported */}
           <div className="flex items-center">
             <Clock className="w-5 h-5 mr-3 text-gray-500" />
             <div>
@@ -120,16 +107,12 @@ const ItemDetailPage = async ({ params }) => {
             </div>
           </div>
         </div>
-
-        {/* Description Block */}
         <div className="bg-gray-100 p-4 rounded-lg mb-8">
           <p className="text-sm font-bold text-gray-800 mb-2">
             Detailed Description:
           </p>
           <p className="text-base text-gray-700 italic">{item.description}</p>
         </div>
-
-        {/* Contact Information (The most crucial part) */}
         <div className={`p-4 rounded-lg border-2 ${primaryColor}`}>
           <h2 className="text-xl font-bold text-gray-900 flex items-center mb-2">
             <Mail className={`w-6 h-6 mr-3 ${textColor}`} />

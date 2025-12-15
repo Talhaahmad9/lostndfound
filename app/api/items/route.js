@@ -16,14 +16,12 @@ export async function GET(request) {
     const lostCollection = db.collection("lost_items");
     const foundCollection = db.collection("found_items");
 
-    // Get search query from URL
     const { searchParams } = new URL(request.url);
     const q = searchParams.get("q")?.trim();
 
-    // Build MongoDB filter for search
     let filter = {};
     if (q) {
-      const regex = new RegExp(q, "i"); // case-insensitive
+      const regex = new RegExp(q, "i");
       filter = {
         $or: [
           { item_name: regex },
@@ -33,7 +31,6 @@ export async function GET(request) {
       };
     }
 
-    // Fetch filtered items, excluding sensitive contact info
     const lostItems = await lostCollection
       .find(filter)
       .project({ contact_email: 0 })
@@ -44,10 +41,8 @@ export async function GET(request) {
       .project({ contact_email: 0 })
       .toArray();
 
-    // Merge and prepare items for the frontend
     const allItems = [...lostItems, ...foundItems];
 
-    // Sort by the most recently submitted item (descending date_submitted)
     allItems.sort(
       (a, b) => new Date(b.date_submitted) - new Date(a.date_submitted)
     );

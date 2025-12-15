@@ -2,8 +2,6 @@
 
 import { NextResponse } from "next/server";
 
-// Placeholder for your actual database connection utility
-// Replace this function with your actual database connection logic
 async function connectToDatabase() {
   const { MongoClient } = require("mongodb");
   const uri = process.env.MONGODB_URI;
@@ -12,7 +10,6 @@ async function connectToDatabase() {
   return client.db("lostandfounddb");
 }
 
-// --- NEW BACKEND VALIDATION UTILITY ---
 const validateLostItem = (body) => {
   const {
     item_name,
@@ -44,7 +41,6 @@ const validateLostItem = (body) => {
   if (date_lost) {
     const lostDate = new Date(date_lost);
     const today = new Date();
-    // Check if date is valid and not in the future
     if (isNaN(lostDate) || lostDate > today) {
       errors.date_lost = "Invalid or future date provided.";
     }
@@ -59,11 +55,9 @@ export async function POST(request) {
   try {
     const body = await request.json();
 
-    // Run backend validation
     const { isValid, errors } = validateLostItem(body);
 
     if (!isValid) {
-      // Return specific validation errors to the client
       return NextResponse.json(
         { error: "Validation Failed", details: errors },
         { status: 400 }
@@ -73,10 +67,9 @@ export async function POST(request) {
     const db = await connectToDatabase();
     const collection = db.collection("lost_items");
 
-    // Prepare document for insertion
     const newReport = {
       ...body,
-      status: "Lost", // Default status
+      status: "Lost",
       date_submitted: new Date(),
     };
 

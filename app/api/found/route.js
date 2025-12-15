@@ -1,13 +1,11 @@
-// app/api/found/route.js
-
 import { NextResponse } from "next/server";
-import { MongoClient } from "mongodb"; // Correct ES Module import
+import { MongoClient } from "mongodb";
 
 async function connectToDatabase() {
   const uri = process.env.MONGODB_URI;
   const client = new MongoClient(uri);
   await client.connect();
-  return client.db("lostandfounddb"); // Using the confirmed correct database name
+  return client.db("lostandfounddb");
 }
 
 const validateFoundItem = (body) => {
