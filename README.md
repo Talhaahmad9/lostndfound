@@ -28,6 +28,7 @@ A modern Lost & Found web app for reporting, searching, and managing lost or fou
    - Create a `.env.local` file and add your MongoDB connection string:
      ```env
      MONGODB_URI=your-mongodb-uri
+     NEXT_PUBLIC_BASE_URL=http://localhost:3000
      ```
 4. **Run the development server:**
    ```bash
