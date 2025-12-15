@@ -21,7 +21,7 @@ const formatDate = (dateString) => {
 
 async function getItemDetails(id) {
   const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000"}/api/items/${id}`,
+    `${process.env.NEXT_PUBLIC_BASE_URL}/api/items/${id}`,
     {
       cache: "no-store",
     }
