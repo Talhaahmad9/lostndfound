@@ -17,7 +17,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata = {
-  title: "LostNDFound",
+  title: "Lost & Found",
   description: "A platform for reporting and finding lost items.",
 };
 
