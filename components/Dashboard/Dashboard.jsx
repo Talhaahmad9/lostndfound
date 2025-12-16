@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import ItemCard from "@/components/Dashboard/ItemCard";
 import { AlertTriangle, Home } from "lucide-react";
 import { useSearch } from "@/components/Context/SearchContext";
+import SpinningLoader from "../miscellaneous/SpinningLoader";
 
 const Dashboard = () => {
   const { search } = useSearch();
@@ -22,13 +23,18 @@ const Dashboard = () => {
         const data = await res.json();
         if (!ignore) setItems(data);
       } catch (e) {
-        if (!ignore) setError("Could not load items from the server. Please check the API connection.");
+        if (!ignore)
+          setError(
+            "Could not load items from the server. Please check the API connection."
+          );
       } finally {
         if (!ignore) setLoading(false);
       }
     }
     fetchItems();
-    return () => { ignore = true; };
+    return () => {
+      ignore = true;
+    };
   }, [search]);
 
   return (
@@ -45,14 +51,16 @@ const Dashboard = () => {
           <p className="font-medium">{error}</p>
         </div>
       )}
-      {loading && (
-        <div className="text-center py-8 text-blue-600 font-semibold">Loading...</div>
-      )}
+      {loading && <SpinningLoader color="text-blue-600" size={50} />}
       {items.length === 0 && !error && !loading && (
         <div className="text-center py-16">
           <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">No items reported yet.</h2>
-          <p className="text-gray-500 mt-2">Be the first to report a lost or found item!</p>
+          <h2 className="text-xl font-semibold text-gray-700">
+            No items reported yet.
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Be the first to report a lost or found item!
+          </p>
         </div>
       )}
       {items.length > 0 && !loading && (

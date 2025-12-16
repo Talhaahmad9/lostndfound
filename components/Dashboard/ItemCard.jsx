@@ -34,7 +34,7 @@ const ItemCard = ({ item }) => {
   const handleViewDetails = (e) => {
     setLoading(true);
     // Let the Link handle navigation after a short delay for effect
-    setTimeout(() => setLoading(false), 1200);
+    // setTimeout(() => setLoading(false), 1200);
   };
 
   return (
@@ -84,44 +84,44 @@ const ItemCard = ({ item }) => {
             <Mail className={`w-5 h-5 ${statusText}`} />
             <span className="text-xs text-gray-500">Contact available</span>
           </div>
-          <Link href={`/item/${item._id}`} legacyBehavior>
-            <a
-              className={`inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-200 w-full ${
-                isLost
-                  ? "bg-orange-500 hover:bg-orange-600"
-                  : "bg-blue-600 hover:bg-blue-700"
-              } ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
-              onClick={handleViewDetails}
-              aria-disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <svg
-                    className="animate-spin h-5 w-5 mr-2 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8z"
-                    ></path>
-                  </svg>
-                  Getting details...
-                </>
-              ) : (
-                "View Details"
-              )}
-            </a>
+          <Link
+            href={`/item/${item._id}`}
+            className={`inline-flex items-center justify-center px-4 py-2 rounded-lg font-semibold text-white transition-colors duration-200 w-full ${
+              isLost
+                ? "bg-orange-500 hover:bg-orange-600"
+                : "bg-blue-600 hover:bg-blue-700"
+            } ${loading ? "opacity-70 cursor-not-allowed" : ""}`}
+            onClick={handleViewDetails}
+            aria-disabled={loading}>
+
+            {loading ? (
+              <>
+                <svg
+                  className="animate-spin h-5 w-5 mr-2 text-white"
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                >
+                  <circle
+                    className="opacity-25"
+                    cx="12"
+                    cy="12"
+                    r="10"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                  ></circle>
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v8z"
+                  ></path>
+                </svg>
+                Getting details...
+              </>
+            ) : (
+              "View Details"
+            )}
+
           </Link>
         </div>
       </div>
