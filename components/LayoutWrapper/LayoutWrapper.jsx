@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar/Navbar";
 import { SearchProvider } from "@/components/Context/SearchContext";
+import { Analytics } from '@vercel/analytics/next';
 
 const Footer = () => (
   <footer className="bg-gray-800 text-gray-400 text-center p-4 mt-8">
@@ -16,6 +17,7 @@ export default function LayoutWrapper({ children }) {
         <Navbar />
         <main className="flex-grow py-8 mt-4 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
           {children}
+          <Analytics />
         </main>
         <Footer />
       </div>
