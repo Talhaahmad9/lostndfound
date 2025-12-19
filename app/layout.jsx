@@ -17,8 +17,28 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata = {
-  title: "Lost & Found",
+  title: {
+    default: "Lost & Found",
+    template: "%s | Lost & Found",
+  },
   description: "A platform for reporting and finding lost items.",
+  keywords: ["lost and found", "lost items", "found items", "report lost item"],
+  author: "Lost & Found Team",
+  manifest: "/manifest.json",
+  openGraph: {
+    title: "Lost & Found",
+    description: "A platform for reporting and finding lost items.",
+    url: "https://lostandfound.com",
+    type: "website",
+    images: [
+      {
+        url: "/images/logo.png",
+        width: 1200,
+        height: 630,
+        alt: "Lost & Found",
+      },
+    ],
+  },
 };
 
 export default function RootLayout({ children }) {

@@ -28,7 +28,7 @@ const Logo = () => (
     </div>
 
     {/* 2. Brand Name Text (LostNFound) */}
-    <span className="text-2xl font-extrabold tracking-tight text-gray-800">
+    <span className="text-xl font-extrabold tracking-tight text-gray-800">
       <span className="text-blue-600">Lost</span>
       <span className="text-orange-500">ND</span>
       <span className="text-blue-600">Found</span>

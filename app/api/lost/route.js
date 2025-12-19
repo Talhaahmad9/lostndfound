@@ -1,18 +1,16 @@
 // app/api/lost/route.js
-
 import { NextResponse } from "next/server";
 import { validateLostItem } from "@/utils/validation";
-
-async function connectToDatabase() {
-  const { MongoClient } = require("mongodb");
-  const uri = process.env.MONGODB_URI;
-  const client = new MongoClient(uri);
-  await client.connect();
-  return client.db("lostandfounddb");
-}
+import { auth } from "@clerk/nextjs/server";
+import clientPromise from "@/lib/db";
 
 export async function POST(request) {
   try {
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
 
     const { isValid, errors } = validateLostItem(body);
@@ -24,11 +22,13 @@ export async function POST(request) {
       );
     }
 
-    const db = await connectToDatabase();
+    const client = await clientPromise;
+    const db = client.db("lostandfounddb");
     const collection = db.collection("lost_items");
 
     const newReport = {
       ...body,
+      userId,
       status: "Lost",
       date_submitted: new Date(),
     };

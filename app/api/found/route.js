@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { MongoClient } from "mongodb";
 import { validateFoundItem } from "@/utils/validation";
+import { auth } from "@clerk/nextjs/server";
 
 async function connectToDatabase() {
   const uri = process.env.MONGODB_URI;
@@ -11,6 +12,11 @@ async function connectToDatabase() {
 
 export async function POST(request) {
   try {
+    const { userId } = auth();
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
 
     const { isValid, errors } = validateFoundItem(body);
@@ -27,6 +33,7 @@ export async function POST(request) {
 
     const newReport = {
       ...body,
+      userId,
       status: "Found",
       date_submitted: new Date(),
     };

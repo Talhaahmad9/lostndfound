@@ -1,6 +1,7 @@
 import Navbar from "@/components/Navbar/Navbar";
 import { SearchProvider } from "@/components/Context/SearchContext";
-import { Analytics } from '@vercel/analytics/next';
+import { Analytics } from "@vercel/analytics/next";
+import { ClerkProvider } from "@clerk/nextjs";
 
 const Footer = () => (
   <footer className="bg-gray-800 text-gray-400 text-center p-4 mt-8">
@@ -12,15 +13,17 @@ const Footer = () => (
 
 export default function LayoutWrapper({ children }) {
   return (
-    <SearchProvider>
-      <div className="flex flex-col min-h-screen bg-gray-50">
-        <Navbar />
-        <main className="flex-grow py-8 mt-4 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
-          {children}
-          <Analytics />
-        </main>
-        <Footer />
-      </div>
-    </SearchProvider>
+    <ClerkProvider>
+      <SearchProvider>
+        <div className="flex flex-col min-h-screen bg-gray-50">
+          <Navbar />
+          <main className="flex-grow py-8 mt-4 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8">
+            {children}
+            <Analytics />
+          </main>
+          <Footer />
+        </div>
+      </SearchProvider>
+    </ClerkProvider>
   );
 }

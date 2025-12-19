@@ -3,7 +3,7 @@
 "use client";
 
 import { useState } from "react";
-import { Menu, X, Search, User } from "lucide-react";
+import { Menu, X, Search } from "lucide-react";
 import Link from "next/link";
 
 // Import sub-components
@@ -32,12 +32,6 @@ const Navbar = () => {
         <Logo />
         <DesktopLinks />
         <div className="flex items-center space-x-3 text-blue-600">
-          <Link
-            href="/profile"
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <User className="w-6 h-6" />
-          </Link>
           <button
             className="lg:hidden p-2 rounded-full hover:bg-gray-100 transition-colors"
             onClick={toggleSearch}

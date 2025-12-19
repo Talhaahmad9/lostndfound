@@ -37,6 +37,28 @@ async function getItemDetails(id) {
   return res.json();
 }
 
+export async function generateMetadata({ params }) {
+  const { id } = await params;
+  const item = await getItemDetails(id);
+
+  return {
+    title: item.item_name,
+    description: item.description,
+    openGraph: {
+      title: item.item_name,
+      description: item.description,
+      images: [
+        {
+          url: item.image_url || "/images/logo.png",
+          width: 1200,
+          height: 630,
+          alt: item.item_name,
+        },
+      ],
+    },
+  };
+}
+
 const ItemDetailPage = async ({ params }) => {
   const { id } = await params;
   const item = await getItemDetails(id);

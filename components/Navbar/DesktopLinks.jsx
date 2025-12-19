@@ -1,5 +1,4 @@
-// components/Navbar/DesktopLinks.jsx
-
+import { SignInButton, useUser, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { useSearch } from "@/components/Context/SearchContext";
@@ -11,6 +10,8 @@ const NavLinks = [
 
 const DesktopLinks = () => {
   const { search, setSearch } = useSearch();
+  const { isSignedIn } = useUser();
+
   return (
     // Visible only on large screens (desktops)
     <div className="hidden lg:flex flex-grow items-center justify-center space-x-8">
@@ -24,6 +25,21 @@ const DesktopLinks = () => {
           {link.name}
         </Link>
       ))}
+
+      {isSignedIn ? (
+        <Link
+          href="/report/lost"
+          className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-300 transform hover:scale-105"
+        >
+          Report Lost
+        </Link>
+      ) : (
+        <SignInButton mode="modal">
+          <button className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-300 transform hover:scale-105">
+            Report Lost
+          </button>
+        </SignInButton>
+      )}
 
       {/* Desktop Search Bar (Centered) */}
       <div className="w-full max-w-lg relative">
@@ -39,13 +55,16 @@ const DesktopLinks = () => {
         </button>
       </div>
 
-      {/* Desktop Report Lost CTA Button */}
-      <Link
-        href="/report/lost"
-        className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-300 transform hover:scale-105"
-      >
-        Report Lost
-      </Link>
+      {/* Auth Links */}
+      {!isSignedIn ? (
+        <SignInButton mode="modal">
+          <button className="bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-4 rounded-full shadow-md transition duration-300 transform hover:scale-105">
+            Login
+          </button>
+        </SignInButton>
+      ) : (
+        <UserButton afterSignOutUrl="/" />
+      )}
     </div>
   );
 };

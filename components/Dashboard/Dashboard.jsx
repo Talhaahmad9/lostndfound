@@ -1,41 +1,70 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import ItemCard from "@/components/Dashboard/ItemCard";
 import { AlertTriangle, Home } from "lucide-react";
 import { useSearch } from "@/components/Context/SearchContext";
 import SpinningLoader from "../miscellaneous/SpinningLoader";
+import { useDebounce } from "@/hooks/useDebounce";
+
+const PAGE_LIMIT = 9;
 
 const Dashboard = () => {
   const { search } = useSearch();
   const [items, setItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+  const debouncedSearch = useDebounce(search, 500);
 
-  useEffect(() => {
-    let ignore = false;
-    async function fetchItems() {
-      setLoading(true);
-      setError(null);
-      try {
-        const q = search ? `?q=${encodeURIComponent(search)}` : "";
-        const res = await fetch(`/api/items${q}`);
-        if (!res.ok) throw new Error("Failed to fetch item data");
-        const data = await res.json();
-        if (!ignore) setItems(data);
-      } catch (e) {
-        if (!ignore)
-          setError(
-            "Could not load items from the server. Please check the API connection."
-          );
-      } finally {
-        if (!ignore) setLoading(false);
+  const fetchItems = useCallback(async (pageNum, currentSearch) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const params = new URLSearchParams({
+        page: pageNum,
+        limit: PAGE_LIMIT,
+      });
+      if (currentSearch) {
+        params.append("q", currentSearch);
       }
+      const res = await fetch(`/api/items?${params.toString()}`);
+      if (!res.ok) throw new Error("Failed to fetch item data");
+      const data = await res.json();
+      return data;
+    } catch (e) {
+      setError(
+        "Could not load items from the server. Please check the API connection."
+      );
+      return [];
+    } finally {
+      setLoading(false);
     }
-    fetchItems();
-    return () => {
-      ignore = true;
-    };
-  }, [search]);
+  }, []);
+
+  // Effect for when the debounced search term changes
+  useEffect(() => {
+    setItems([]);
+    setPage(1);
+    setHasMore(true);
+    fetchItems(1, debouncedSearch).then((newItems) => {
+      setItems(newItems);
+      if (newItems.length < PAGE_LIMIT) {
+        setHasMore(false);
+      }
+    });
+  }, [debouncedSearch, fetchItems]);
+
+  const loadMoreItems = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    fetchItems(nextPage, search).then((newItems) => {
+      setItems((prevItems) => [...prevItems, ...newItems]);
+      if (newItems.length < PAGE_LIMIT) {
+        setHasMore(false);
+      }
+    });
+  };
 
   return (
     <>
@@ -45,29 +74,44 @@ const Dashboard = () => {
           Live Item Feed
         </h1>
       </div>
-      {error && (
+      {error && !loading && (
         <div className="flex items-center justify-center p-6 bg-red-100 text-red-800 rounded-lg shadow-md mb-8">
           <AlertTriangle className="w-6 h-6 mr-3" />
           <p className="font-medium">{error}</p>
         </div>
       )}
-      {loading && <SpinningLoader color="text-blue-600" size={50} />}
-      {items.length === 0 && !error && !loading && (
-        <div className="text-center py-16">
-          <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-gray-700">
-            No items reported yet.
-          </h2>
-          <p className="text-gray-500 mt-2">
-            Be the first to report a lost or found item!
-          </p>
-        </div>
-      )}
-      {items.length > 0 && !loading && (
+
+      {items.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {items.map((item) => (
             <ItemCard key={item._id} item={item} />
           ))}
+        </div>
+      )}
+
+      {loading && <SpinningLoader color="text-blue-600" size={50} />}
+
+      {items.length === 0 && !error && !loading && (
+        <div className="text-center py-16">
+          <AlertTriangle className="w-12 h-12 text-yellow-500 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold text-gray-700">
+            No items found matching your search.
+          </h2>
+          <p className="text-gray-500 mt-2">
+            Try a different search term or check back later!
+          </p>
+        </div>
+      )}
+
+      {hasMore && !loading && (
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={loadMoreItems}
+            className="px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 transition-transform transform hover:scale-105"
+            disabled={loading}
+          >
+            Load More
+          </button>
         </div>
       )}
     </>

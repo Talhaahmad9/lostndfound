@@ -1,5 +1,4 @@
-// components/Navbar/MobileMenu.jsx
-
+import { SignInButton, useUser, UserButton } from "@clerk/nextjs";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { useSearch } from "@/components/Context/SearchContext";
@@ -11,6 +10,7 @@ const NavLinks = [
 
 const MobileMenu = ({ isMenuOpen, isSearchActive, setIsMenuOpen }) => {
   const { search, setSearch } = useSearch();
+  const { isSignedIn } = useUser();
   return (
     // Visible on screens smaller than large (mobile and tablet)
     <div
@@ -44,15 +44,38 @@ const MobileMenu = ({ isMenuOpen, isSearchActive, setIsMenuOpen }) => {
               {link.name}
             </Link>
           ))}
-
-          {/* Mobile CTA Button (Report Lost) */}
-          <Link
-            href="/report/lost"
-            onClick={() => setIsMenuOpen(false)}
-            className="mt-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300"
-          >
-            Report Lost
-          </Link>
+          {isSignedIn ? (
+            <Link
+              href="/report/lost"
+              onClick={() => setIsMenuOpen(false)}
+              className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300 w-full"
+            >
+              Report Lost
+            </Link>
+          ) : (
+            <SignInButton mode="modal">
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300 w-full"
+              >
+                Report Lost
+              </button>
+            </SignInButton>
+          )}
+          {!isSignedIn ? (
+            <SignInButton mode="modal">
+              <button
+                onClick={() => setIsMenuOpen(false)}
+                className="mt-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300 w-full"
+              >
+                Login
+              </button>
+            </SignInButton>
+          ) : (
+            <div className="mt-2 flex justify-center">
+              <UserButton afterSignOutUrl="/" />
+            </div>
+          )}
         </div>
       )}
     </div>
