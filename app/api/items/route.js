@@ -5,14 +5,17 @@ import clientPromise from "@/lib/db";
 const PAGE_LIMIT_DEFAULT = 9;
 
 export async function GET(request) {
+  const { searchParams } = new URL(request.url);
+  const q = searchParams.get("q")?.trim() || "";
+  const page = parseInt(searchParams.get("page") ?? "1", 10);
+  const limit = parseInt(searchParams.get("limit") ?? PAGE_LIMIT_DEFAULT, 10);
+
+  console.log("API /api/items called with:", { q, page, limit });
+
   try {
     const client = await clientPromise;
     const db = client.db("lostandfounddb");
 
-    const { searchParams } = new URL(request.url);
-    const q = searchParams.get("q")?.trim() || "";
-    const page = parseInt(searchParams.get("page") ?? "1", 10);
-    const limit = parseInt(searchParams.get("limit") ?? PAGE_LIMIT_DEFAULT, 10);
     const skip = (page - 1) * limit;
 
     // Build filter for search
@@ -26,37 +29,28 @@ export async function GET(request) {
         }
       : {};
 
-    // Fetch lost and found items separately
-    const [lostItems, foundItems] = await Promise.all([
-      db
-        .collection("lost_items")
-        .find(filter)
-        .sort({ date_submitted: -1 })
-        .skip(skip)
-        .limit(limit)
-        .project({ contact_email: 0 })
-        .toArray(),
-      db
-        .collection("found_items")
-        .find(filter)
-        .sort({ date_submitted: -1 })
-        .skip(skip)
-        .limit(limit)
-        .project({ contact_email: 0 })
-        .toArray(),
-    ]);
+    const pipeline = [
+      {
+        $unionWith: {
+          coll: "found_items",
+        },
+      },
+      { $match: filter },
+      { $sort: { date_submitted: -1 } },
+      { $skip: skip },
+      { $limit: limit },
+      { $project: { contact_email: 0 } },
+    ];
 
-    // Merge and sort in JS
-    const allItems = [...lostItems, ...foundItems].sort(
-      (a, b) => b.date_submitted - a.date_submitted
-    );
+    console.log("Constructed aggregation pipeline:", JSON.stringify(pipeline, null, 2));
 
-    // Return paginated slice
-    const paginatedItems = allItems.slice(0, limit);
+    const allItems = await db.collection("lost_items").aggregate(pipeline).toArray();
 
-    return NextResponse.json(paginatedItems);
+    console.log("Aggregation result count:", allItems.length);
+
+    return NextResponse.json(allItems);
   } catch (error) {
-    console.error("Dashboard fetch error:", error);
+    console.error(`Dashboard fetch error for query: { q: "${q}", page: ${page}, limit: ${limit} }`, error);
     return NextResponse.json(
       { error: "Database request failed" },
       { status: 500 }
