@@ -24,6 +24,7 @@ async function createIndexes() {
         { key: { item_name: 1 } },
         { key: { category: 1 } },
         { key: { last_seen_location: 1 } },
+        { key: { date_submitted: -1 } },
       ]);
 
     // Found items indexes
@@ -33,6 +34,7 @@ async function createIndexes() {
         { key: { item_name: 1 } },
         { key: { category: 1 } },
         { key: { last_seen_location: 1 } },
+        { key: { date_submitted: -1 } },
       ]);
 
     console.log("Indexes created successfully!");
