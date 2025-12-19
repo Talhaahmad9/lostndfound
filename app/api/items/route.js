@@ -1,5 +1,8 @@
+// app/api/items/route.js
 import { NextResponse } from "next/server";
 import clientPromise from "@/lib/db";
+
+const PAGE_LIMIT_DEFAULT = 9;
 
 export async function GET(request) {
   try {
@@ -7,52 +10,56 @@ export async function GET(request) {
     const db = client.db("lostandfounddb");
 
     const { searchParams } = new URL(request.url);
-    const q = searchParams.get("q")?.trim();
+    const q = searchParams.get("q")?.trim() || "";
     const page = parseInt(searchParams.get("page") ?? "1", 10);
-    const limit = parseInt(searchParams.get("limit") ?? "10", 10);
+    const limit = parseInt(searchParams.get("limit") ?? PAGE_LIMIT_DEFAULT, 10);
     const skip = (page - 1) * limit;
 
-    let filter = {};
-    if (q) {
-      // Using an anchored regex is more efficient as it can use an index
-      const regex = new RegExp("^" + q, "i");
-      filter = {
-        $or: [
-          { item_name: regex },
-          { category: regex },
-          { last_seen_location: regex },
-        ],
-      };
-    }
+    // Build filter for search
+    const filter = q
+      ? {
+          $or: [
+            { item_name: { $regex: `^${q}`, $options: "i" } },
+            { category: { $regex: `^${q}`, $options: "i" } },
+            { last_seen_location: { $regex: `^${q}`, $options: "i" } },
+          ],
+        }
+      : {};
 
-    // This aggregation pipeline is much more efficient than fetching all items and sorting in memory
-    const pipeline = [
-      // Start with the lost_items collection
-      { $match: filter },
-      // Union with the found_items collection
-      {
-        $unionWith: {
-          coll: "found_items",
-          pipeline: [{ $match: filter }],
-        },
-      },
-      // Sort the combined results
-      { $sort: { date_submitted: -1 } },
-      // Apply pagination
-      { $skip: skip },
-      { $limit: limit },
-      // Exclude sensitive information
-      { $project: { contact_email: 0 } },
-    ];
+    // Fetch lost and found items separately
+    const [lostItems, foundItems] = await Promise.all([
+      db
+        .collection("lost_items")
+        .find(filter)
+        .sort({ date_submitted: -1 })
+        .skip(skip)
+        .limit(limit)
+        .project({ contact_email: 0 })
+        .toArray(),
+      db
+        .collection("found_items")
+        .find(filter)
+        .sort({ date_submitted: -1 })
+        .skip(skip)
+        .limit(limit)
+        .project({ contact_email: 0 })
+        .toArray(),
+    ]);
 
-    const allItems = await db
-      .collection("lost_items")
-      .aggregate(pipeline)
-      .toArray();
+    // Merge and sort in JS
+    const allItems = [...lostItems, ...foundItems].sort(
+      (a, b) => b.date_submitted - a.date_submitted
+    );
 
-    return NextResponse.json(allItems);
+    // Return paginated slice
+    const paginatedItems = allItems.slice(0, limit);
+
+    return NextResponse.json(paginatedItems);
   } catch (error) {
     console.error("Dashboard fetch error:", error);
-    return NextResponse.json({ error: "Database timeout" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Database request failed" },
+      { status: 500 }
+    );
   }
 }
