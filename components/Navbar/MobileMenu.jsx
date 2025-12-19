@@ -56,7 +56,7 @@ const MobileMenu = ({ isMenuOpen, isSearchActive, setIsMenuOpen }) => {
             <SignInButton mode="modal">
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300 w-full"
+                className="mt-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300 w-full"
               >
                 Report Lost
               </button>
@@ -66,7 +66,7 @@ const MobileMenu = ({ isMenuOpen, isSearchActive, setIsMenuOpen }) => {
             <SignInButton mode="modal">
               <button
                 onClick={() => setIsMenuOpen(false)}
-                className="mt-2 bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300 w-full"
+                className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-3 rounded-lg text-center transition duration-300 w-full"
               >
                 Login
               </button>
