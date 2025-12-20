@@ -5,9 +5,11 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, AlertTriangle, CheckCircle } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 
 const ReportFoundForm = () => {
   const router = useRouter();
+  const { getToken } = useAuth();
 
   const [formData, setFormData] = useState({
     item_name: "",
@@ -86,9 +88,14 @@ const ReportFoundForm = () => {
     setLoading(true);
 
     try {
+      const token = await getToken(); // ✅ Clerk token for auth
+
       const response = await fetch("/api/found", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`, // ✅ Include token
+        },
         body: JSON.stringify(formData),
       });
 
@@ -98,6 +105,15 @@ const ReportFoundForm = () => {
         setMessage({
           type: "success",
           text: "Thank you! Your found item report has been filed.",
+        });
+
+        setFormData({
+          item_name: "",
+          category: "",
+          last_seen_location: "",
+          date_found: "",
+          description: "",
+          contact_email: "",
         });
 
         setTimeout(() => {
@@ -168,39 +184,27 @@ const ReportFoundForm = () => {
       <form onSubmit={handleSubmit} className="space-y-5">
         {/* Item Name */}
         <div>
-          <label
-            htmlFor="item_name"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
+          <label className="block text-sm font-semibold mb-1">
             Item Name / Title
           </label>
           <input
             type="text"
             name="item_name"
-            id="item_name"
             value={formData.item_name}
             onChange={handleChange}
-            required
-            placeholder="e.g., Apple Watch, Red Backpack"
             className={getInputClass("item_name")}
+            placeholder="e.g., Apple Watch, Red Backpack"
           />
           {renderError("item_name")}
         </div>
 
         {/* Category */}
         <div>
-          <label
-            htmlFor="category"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Category
-          </label>
+          <label className="block text-sm font-semibold mb-1">Category</label>
           <select
             name="category"
-            id="category"
             value={formData.category}
             onChange={handleChange}
-            required
             className={getInputClass("category")}
           >
             <option value="" disabled>
@@ -217,40 +221,28 @@ const ReportFoundForm = () => {
 
         {/* Location Found */}
         <div>
-          <label
-            htmlFor="last_seen_location"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
+          <label className="block text-sm font-semibold mb-1">
             Location Found
           </label>
           <input
             type="text"
             name="last_seen_location"
-            id="last_seen_location"
             value={formData.last_seen_location}
             onChange={handleChange}
-            required
-            placeholder="e.g., Cafeteria table 5, Sidewalk near clock tower"
             className={getInputClass("last_seen_location")}
+            placeholder="e.g., Cafeteria table 5, Sidewalk near clock tower"
           />
           {renderError("last_seen_location")}
         </div>
 
         {/* Date Found */}
         <div>
-          <label
-            htmlFor="date_found"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
-            Date Found
-          </label>
+          <label className="block text-sm font-semibold mb-1">Date Found</label>
           <input
             type="date"
             name="date_found"
-            id="date_found"
             value={formData.date_found}
             onChange={handleChange}
-            required
             className={getInputClass("date_found")}
           />
           {renderError("date_found")}
@@ -258,54 +250,42 @@ const ReportFoundForm = () => {
 
         {/* Description */}
         <div>
-          <label
-            htmlFor="description"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
+          <label className="block text-sm font-semibold mb-1">
             Detailed Description (Color, Model, Unique Marks)
           </label>
           <textarea
             name="description"
-            id="description"
             rows="4"
             value={formData.description}
             onChange={handleChange}
-            required
-            placeholder="e.g., Has a small dent on the corner. The case is clear with a university sticker."
             className={getInputClass("description")}
+            placeholder="e.g., Has a small dent on the corner. Clear case with a university sticker."
           />
           {renderError("description")}
         </div>
 
         {/* Contact Email */}
         <div>
-          <label
-            htmlFor="contact_email"
-            className="block text-sm font-semibold text-gray-700 mb-1"
-          >
+          <label className="block text-sm font-semibold mb-1">
             Your Contact Email
           </label>
           <input
             type="email"
             name="contact_email"
-            id="contact_email"
             value={formData.contact_email}
             onChange={handleChange}
-            required
-            placeholder="your.email@example.com"
             className={getInputClass("contact_email")}
+            placeholder="your.email@example.com"
           />
           {renderError("contact_email")}
         </div>
 
-        {/* Messages */}
         {renderMessage()}
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg shadow-md transition duration-300 flex items-center justify-center disabled:opacity-50"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-lg flex items-center justify-center disabled:opacity-50"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 mr-2 animate-spin" />

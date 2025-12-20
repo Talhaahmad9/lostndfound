@@ -18,24 +18,32 @@ async function createIndexes() {
     const db = client.db("lostandfounddb");
 
     // Lost items indexes
-    await db
-      .collection("lost_items")
-      .createIndexes([
-        { key: { item_name: 1 } },
-        { key: { category: 1 } },
-        { key: { last_seen_location: 1 } },
-        { key: { date_submitted: -1 } },
-      ]);
+    await db.collection("lost_items").createIndexes([
+      {
+        key: {
+          item_name: "text",
+          category: "text",
+          last_seen_location: "text",
+          date_found: "text",
+          date_lost: "text",
+        },
+        name: "search_index",
+      },
+      { key: { date_submitted: -1 }, name: "date_submitted_index" },
+    ]);
 
     // Found items indexes
-    await db
-      .collection("found_items")
-      .createIndexes([
-        { key: { item_name: 1 } },
-        { key: { category: 1 } },
-        { key: { last_seen_location: 1 } },
-        { key: { date_submitted: -1 } },
-      ]);
+    await db.collection("found_items").createIndexes([
+      {
+        key: {
+          item_name: "text",
+          category: "text",
+          last_seen_location: "text",
+        },
+        name: "search_index",
+      },
+      { key: { date_submitted: -1 }, name: "date_submitted_index" },
+    ]);
 
     console.log("Indexes created successfully!");
   } catch (err) {

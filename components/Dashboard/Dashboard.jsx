@@ -2,20 +2,28 @@
 import { useEffect, useState, useCallback } from "react";
 import ItemCard from "@/components/Dashboard/ItemCard";
 import { AlertTriangle, Home } from "lucide-react";
-import { useSearch } from "@/components/Context/SearchContext";
 import SpinningLoader from "../miscellaneous/SpinningLoader";
 import { useDebounce } from "@/hooks/useDebounce";
+import { useSearch } from "@/components/Context/SearchContext";
 
 const PAGE_LIMIT = 9;
 
 const Dashboard = () => {
+
   const { search } = useSearch();
+
   const [items, setItems] = useState([]);
+
   const [page, setPage] = useState(1);
+
   const [hasMore, setHasMore] = useState(true);
+
   const [error, setError] = useState(null);
+
   const [loading, setLoading] = useState(false);
+
   const debouncedSearch = useDebounce(search, 500);
+
 
   const fetchItems = useCallback(async (pageNum, currentSearch) => {
     setLoading(true);
@@ -25,45 +33,49 @@ const Dashboard = () => {
         page: pageNum,
         limit: PAGE_LIMIT,
       });
-      if (currentSearch) {
-        params.append("q", currentSearch);
-      }
+      if (currentSearch) params.append("q", currentSearch);
+
+
       const res = await fetch(`/api/items?${params.toString()}`);
       if (!res.ok) throw new Error("Failed to fetch item data");
       const data = await res.json();
-      return data;
+
+      // Return both items and total count
+      return {
+        items: Array.isArray(data.allItems) ? data.allItems : [],
+        totalItems: data.totalItems || 0,
+      };
     } catch (e) {
+      console.error(e);
       setError(
         "Could not load items from the server. Please check the API connection."
       );
-      return [];
+      return { items: [], totalItems: 0 };
     } finally {
       setLoading(false);
     }
   }, []);
 
-  // Effect for when the debounced search term changes
+  // Load items when search term changes
   useEffect(() => {
     setItems([]);
     setPage(1);
     setHasMore(true);
-    fetchItems(1, debouncedSearch).then((newItems) => {
+    fetchItems(1, debouncedSearch).then(({ items: newItems, totalItems }) => {
       setItems(newItems);
-      if (newItems.length < PAGE_LIMIT) {
-        setHasMore(false);
-      }
+      setHasMore(newItems.length < totalItems);
     });
   }, [debouncedSearch, fetchItems]);
 
   const loadMoreItems = () => {
     const nextPage = page + 1;
     setPage(nextPage);
-    fetchItems(nextPage, search).then((newItems) => {
-      setItems((prevItems) => [...prevItems, ...newItems]);
-      if (newItems.length < PAGE_LIMIT) {
-        setHasMore(false);
+    fetchItems(nextPage, debouncedSearch).then(
+      ({ items: newItems, totalItems }) => {
+        setItems((prevItems) => [...prevItems, ...newItems]);
+        setHasMore(items.length + newItems.length < totalItems);
       }
-    });
+    );
   };
 
   return (
@@ -73,7 +85,9 @@ const Dashboard = () => {
           <Home className="w-7 h-7 mr-3 text-blue-600" />
           Live Item Feed
         </h1>
+
       </div>
+
       {error && !loading && (
         <div className="flex items-center justify-center p-6 bg-red-100 text-red-800 rounded-lg shadow-md mb-8">
           <AlertTriangle className="w-6 h-6 mr-3" />

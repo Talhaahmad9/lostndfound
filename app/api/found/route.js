@@ -1,26 +1,22 @@
-import { NextResponse } from "next/server";
-import { MongoClient } from "mongodb";
-import { validateFoundItem } from "@/utils/validation";
-import { auth } from "@clerk/nextjs/server";
+// app/api/found/route.js
 
-async function connectToDatabase() {
-  const uri = process.env.MONGODB_URI;
-  const client = new MongoClient(uri);
-  await client.connect();
-  return client.db("lostandfounddb");
-}
+import { NextResponse } from "next/server";
+import { validateFoundItem } from "@/utils/validation";
+import { getAuth } from "@clerk/nextjs/server";
+import clientPromise from "@/lib/db";
 
 export async function POST(request) {
   try {
-    const { userId } = auth();
+    // ✅ Clerk auth
+    const { userId } = getAuth(request);
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     const body = await request.json();
 
+    // ✅ Validate input
     const { isValid, errors } = validateFoundItem(body);
-
     if (!isValid) {
       return NextResponse.json(
         { error: "Validation Failed", details: errors },
@@ -28,9 +24,12 @@ export async function POST(request) {
       );
     }
 
-    const db = await connectToDatabase();
+    // ✅ Connect to DB via clientPromise
+    const client = await clientPromise;
+    const db = client.db("lostandfounddb");
     const collection = db.collection("found_items");
 
+    // ✅ Create new report
     const newReport = {
       ...body,
       userId,

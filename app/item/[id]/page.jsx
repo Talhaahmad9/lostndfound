@@ -1,5 +1,4 @@
 // app/item/[id]/page.jsx
-
 import {
   MapPin,
   Calendar,
@@ -12,6 +11,7 @@ import {
 import { notFound } from "next/navigation";
 
 const formatDate = (dateString) => {
+  if (!dateString) return "N/A";
   return new Date(dateString).toLocaleDateString("en-US", {
     year: "numeric",
     month: "short",
@@ -19,27 +19,37 @@ const formatDate = (dateString) => {
   });
 };
 
+// Fetch item details safely
 async function getItemDetails(id) {
-  const res = await fetch(
-    `${process.env.NEXT_PUBLIC_BASE_URL}/api/items/${id}`,
-    {
-      cache: "no-store",
+  try {
+    const res = await fetch(
+      new URL(`/api/items/${id}`, process.env.NEXT_PUBLIC_BASE_URL),
+      { cache: "no-store" }
+    );
+
+    if (res.status === 404) {
+      notFound();
     }
-  );
 
-  if (res.status === 404) {
-    notFound();
-  }
-  if (!res.ok) {
-    throw new Error("Failed to fetch item details");
-  }
+    if (!res.ok) {
+      const text = await res.text();
+      console.error(`Failed to fetch item details for ID: ${id}`, text);
+      return null;
+    }
 
-  return res.json();
+    return res.json();
+  } catch (err) {
+    console.error(`Error fetching item details for ID: ${id}`, err);
+    return null;
+  }
 }
 
+// Metadata for SEO
 export async function generateMetadata({ params }) {
   const { id } = await params;
   const item = await getItemDetails(id);
+
+  if (!item) return {};
 
   return {
     title: item.item_name,
@@ -63,6 +73,14 @@ const ItemDetailPage = async ({ params }) => {
   const { id } = await params;
   const item = await getItemDetails(id);
 
+  if (!item) {
+    return (
+      <div className="text-center py-16 text-red-600">
+        Failed to load item details. Please try again later.
+      </div>
+    );
+  }
+
   const isLost = item.status === "Lost";
   const primaryColor = isLost ? "border-red-600" : "border-green-600";
   const bgColor = isLost ? "bg-red-50" : "bg-green-50";
@@ -70,7 +88,6 @@ const ItemDetailPage = async ({ params }) => {
   const statusIcon = isLost ? CircleAlert : CheckCircle2;
   const dateLabel = isLost ? "Lost On" : "Found On";
   const locationLabel = isLost ? "Last Seen Location" : "Location Found";
-
   const StatusIcon = statusIcon;
 
   return (
@@ -89,6 +106,7 @@ const ItemDetailPage = async ({ params }) => {
             {item.status} Item
           </div>
         </div>
+
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-6 gap-x-8 text-gray-700 mb-8">
           <div className="flex items-center">
             <Tag className="w-5 h-5 mr-3 text-gray-500" />
@@ -129,12 +147,14 @@ const ItemDetailPage = async ({ params }) => {
             </div>
           </div>
         </div>
+
         <div className="bg-gray-100 p-4 rounded-lg mb-8">
           <p className="text-sm font-bold text-gray-800 mb-2">
             Detailed Description:
           </p>
           <p className="text-base text-gray-700 italic">{item.description}</p>
         </div>
+
         <div className={`p-4 rounded-lg border-2 ${primaryColor}`}>
           <h2 className="text-xl font-bold text-gray-900 flex items-center mb-2">
             <Mail className={`w-6 h-6 mr-3 ${textColor}`} />

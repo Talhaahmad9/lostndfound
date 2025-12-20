@@ -1,12 +1,12 @@
-// app/api/lost/route.js
 import { NextResponse } from "next/server";
 import { validateLostItem } from "@/utils/validation";
-import { auth } from "@clerk/nextjs/server";
+import { getAuth } from "@clerk/nextjs/server";
 import clientPromise from "@/lib/db";
 
 export async function POST(request) {
   try {
-    const { userId } = auth();
+    const { userId } = getAuth(request);
+
     if (!userId) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -14,7 +14,6 @@ export async function POST(request) {
     const body = await request.json();
 
     const { isValid, errors } = validateLostItem(body);
-
     if (!isValid) {
       return NextResponse.json(
         { error: "Validation Failed", details: errors },
@@ -24,7 +23,6 @@ export async function POST(request) {
 
     const client = await clientPromise;
     const db = client.db("lostandfounddb");
-    const collection = db.collection("lost_items");
 
     const newReport = {
       ...body,
@@ -33,19 +31,15 @@ export async function POST(request) {
       date_submitted: new Date(),
     };
 
-    const result = await collection.insertOne(newReport);
+    const result = await db.collection("lost_items").insertOne(newReport);
 
-    if (result.acknowledged) {
-      return NextResponse.json(
-        {
-          message: "Lost item reported successfully",
-          id: result.insertedId,
-        },
-        { status: 201 }
-      );
-    } else {
-      throw new Error("MongoDB insertion failed.");
-    }
+    return NextResponse.json(
+      {
+        message: "Lost item reported successfully",
+        id: result.insertedId,
+      },
+      { status: 201 }
+    );
   } catch (error) {
     console.error("API Error:", error);
     return NextResponse.json(
